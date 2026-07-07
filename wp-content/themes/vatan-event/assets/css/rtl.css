@@ -1,0 +1,12 @@
+/*
+ * Vatan Event — RTL overrides.
+ *
+ * Layout uses CSS logical properties (inset-inline-*, margin-inline-*, padding-inline-*),
+ * so this file is intentionally light. Add rules here only when an effect
+ * cannot be expressed with logical properties — directional gradients,
+ * non-flippable transforms, decorative offsets etc.
+ */
+
+[dir="rtl"] body { text-align: right; }
+
+[dir="rtl"] .newsletter__form { direction: rtl; }

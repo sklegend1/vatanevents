@@ -1,0 +1,5 @@
+# Allow APK downloads
+<FilesMatch "\.apk$">
+    ForceType application/vnd.android.package-archive
+    Header set Content-Disposition "attachment"
+</FilesMatch>

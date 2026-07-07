@@ -1,0 +1,363 @@
+/*
+ * Vatan Event — main stylesheet.
+ * Design tokens, reset, base typography, RTL/LTR, and a 12-column grid.
+ * Components live in components.css; RTL nuance in rtl.css.
+ *
+ * Fonts are self-hosted as variable woff2 files under /assets/fonts/ so
+ * they keep working when Google Fonts is unreachable (e.g. behind
+ * restrictive networks). Both files are ~50-110KB and load over the same
+ * connection as the rest of the theme assets.
+ */
+
+@font-face {
+	font-family: 'Vazirmatn';
+	src: url('../fonts/Vazirmatn-VF.woff2') format('woff2-variations'),
+	     url('../fonts/Vazirmatn-VF.woff2') format('woff2');
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Inter';
+	src: url('../fonts/Inter-VF.woff2') format('woff2-variations'),
+	     url('../fonts/Inter-VF.woff2') format('woff2');
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	/* === Design tokens (per spec) === */
+
+	/* Brand — same in both schemes. */
+	--color-primary: #FF2D78;        /* صورتی اصلی */
+	--color-primary-dark: #D91F63;
+	--color-secondary: #7C3AED;      /* بنفش */
+
+	/* Surface tokens — DARK scheme defaults. Override in `body.vatan-theme--light`. */
+	--color-bg:           #0D0D1A;   /* page background */
+	--color-surface:      #1A1A2E;   /* card / panel surface */
+	--color-surface-2:    #232340;   /* nested surface (deeper card-on-card) */
+	--color-border:       #2A2A40;
+	--color-text:         #FFFFFF;
+	--color-text-muted:   #A0A0B8;
+	--color-overlay:      rgba(255, 255, 255, 0.06); /* subtle hover */
+	--color-overlay-strong: rgba(255, 255, 255, 0.12); /* hover stronger */
+	--color-bg-blur:      rgba(13, 13, 26, 0.7);     /* sticky header scrolled */
+
+	/* Backwards-compat aliases — declared as direct values, NOT var() chains.
+	   `var()` substitution happens at the var()'s location in the cascade —
+	   so a `--color-dark: var(--color-bg)` on :root would bake the dark value
+	   in once at :root and never re-resolve when body.vatan-theme--light
+	   overrides --color-bg. Each scheme below overrides both canonical and
+	   alias names explicitly. */
+	--color-dark:           #0D0D1A;
+	--color-dark-card:      #1A1A2E;
+	--color-dark-border:    #2A2A40;
+	--color-text-primary:   #FFFFFF;
+	--color-text-secondary: #A0A0B8;
+
+	/* Seat colors — independent of scheme, vivid enough for both. */
+	--color-seat-economy: #06B6D4;   /* آبی — اقتصادی */
+	--color-seat-special: #8B5CF6;   /* بنفش — ویژه CIP */
+	--color-seat-vip: #F59E0B;       /* طلایی — VIP */
+	--color-seat-reserved: #374151;  /* خاکستری — رزرو شده */
+	--color-seat-selected: #FF2D78;  /* صورتی — انتخاب شده */
+
+	/* Typography */
+	--font-fa: 'Vazirmatn', sans-serif;
+	--font-en: 'Inter', sans-serif;
+
+	/* Spacing */
+	--container-max: 1280px;
+	--radius-card: 12px;
+	--radius-btn: 8px;
+
+	/* Shadows */
+	--shadow-card: 0 4px 24px rgba(0,0,0,0.3);
+	--shadow-glow: 0 0 40px rgba(255,45,120,0.2);
+
+	/* === Internal scale (extends the spec) === */
+
+	--font-base: var(--font-fa);
+
+	--fs-xs:  0.75rem;
+	--fs-sm:  0.875rem;
+	--fs-md:  1rem;
+	--fs-lg:  1.125rem;
+	--fs-xl:  1.25rem;
+	--fs-2xl: 1.5rem;
+	--fs-3xl: 2rem;
+	--fs-4xl: 2.75rem;
+	--fs-5xl: 3.5rem;
+
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.5rem;
+	--space-6: 2rem;
+	--space-7: 3rem;
+	--space-8: 4rem;
+
+	--radius-sm:   6px;
+	--radius-lg:   20px;
+	--radius-pill: 999px;
+
+	--shadow-sm: 0 2px 6px rgba(0,0,0,0.18);
+	--shadow-lg: 0 24px 48px rgba(0,0,0,0.4);
+
+	--header-height:    72px;
+	--transition-fast:  0.2s ease;
+	--transition-med:   0.3s ease;
+
+	/* Grid */
+	--gutter: 1rem;
+
+	/* Aliases — keep older internal names mapped to spec tokens
+	   so components.css written before the spec tokens existed keeps working. */
+	--radius-md: var(--radius-card);
+	--shadow-md: var(--shadow-card);
+}
+
+/* === LIGHT scheme === Override surface tokens. Brand + seat colors stay. */
+body.vatan-theme--light {
+	--color-bg:             #FFFFFF;
+	--color-surface:        #F7F8FA;
+	--color-surface-2:      #FFFFFF;
+	--color-border:         #E4E6EB;
+	--color-text:           #0D0D1A;
+	--color-text-muted:     #6B7280;
+	--color-overlay:        rgba(0, 0, 0, 0.04);
+	--color-overlay-strong: rgba(0, 0, 0, 0.08);
+	--color-bg-blur:        rgba(255, 255, 255, 0.85);
+
+	/* Aliases — must be set explicitly here. (See note in :root.) */
+	--color-dark:           #FFFFFF;
+	--color-dark-card:      #F7F8FA;
+	--color-dark-border:    #E4E6EB;
+	--color-text-primary:   #0D0D1A;
+	--color-text-secondary: #6B7280;
+
+	/* Softer shadow on light surfaces. */
+	--shadow-card: 0 4px 24px rgba(13, 13, 26, 0.08);
+	--shadow-sm:   0 2px 6px  rgba(13, 13, 26, 0.05);
+	--shadow-lg:   0 24px 48px rgba(13, 13, 26, 0.12);
+}
+
+/* === Reset === */
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+
+html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+html, body { min-height: 100%; }
+
+body {
+	background: var(--color-dark);
+	color: var(--color-text-primary);
+	font-family: var(--font-base);
+	font-size: var(--fs-md);
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	line-height: 1.2;
+	font-weight: 700;
+	overflow-wrap: break-word;
+}
+p, li { overflow-wrap: break-word; }
+
+a {
+	color: var(--color-primary);
+	text-decoration: none;
+	transition: color var(--transition-fast);
+}
+a:hover { color: var(--color-primary-dark); }
+
+img, picture, video, canvas, svg { display: block; max-width: 100%; height: auto; }
+
+input, button, textarea, select { font: inherit; color: inherit; }
+button { background: none; border: 0; cursor: pointer; padding: 0; }
+
+ul, ol { padding-inline-start: 1.25em; }
+table { border-collapse: collapse; border-spacing: 0; }
+
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+:focus:not(:focus-visible) { outline: none; }
+
+/* === Direction & language === */
+
+/* Persian default — RTL with Vazirmatn */
+html[lang|="fa"] {
+	direction: rtl;
+	--font-base: var(--font-fa);
+}
+
+/* English — LTR with Inter */
+html[lang|="en"] {
+	direction: ltr;
+	--font-base: var(--font-en);
+}
+
+/* Drop English snippets inside RTL content into LTR cleanly */
+.ltr {
+	direction: ltr;
+	font-family: var(--font-en);
+	unicode-bidi: isolate;
+	text-align: start;
+}
+
+/* Conversely, force RTL on a fragment within LTR pages */
+.rtl {
+	direction: rtl;
+	font-family: var(--font-fa);
+	unicode-bidi: isolate;
+	text-align: start;
+}
+
+/* === Layout === */
+
+.container {
+	width: 100%;
+	max-width: var(--container-max);
+	margin-inline: auto;
+	padding-inline: var(--space-5);
+}
+
+/* === 12-column grid === */
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	margin-inline: calc(var(--gutter) * -0.5);
+}
+.row > [class*="col-"] {
+	flex: 0 0 auto;
+	width: 100%;
+	min-width: 0;
+	padding-inline: calc(var(--gutter) * 0.5);
+}
+
+.col-1   { width: 8.3333%; }
+.col-2   { width: 16.6667%; }
+.col-3   { width: 25%; }
+.col-4   { width: 33.3333%; }
+.col-5   { width: 41.6667%; }
+.col-6   { width: 50%; }
+.col-7   { width: 58.3333%; }
+.col-8   { width: 66.6667%; }
+.col-9   { width: 75%; }
+.col-10  { width: 83.3333%; }
+.col-11  { width: 91.6667%; }
+.col-12  { width: 100%; }
+.col-auto { width: auto; }
+
+@media (min-width: 576px) {
+	.col-sm-1   { width: 8.3333%; }
+	.col-sm-2   { width: 16.6667%; }
+	.col-sm-3   { width: 25%; }
+	.col-sm-4   { width: 33.3333%; }
+	.col-sm-5   { width: 41.6667%; }
+	.col-sm-6   { width: 50%; }
+	.col-sm-7   { width: 58.3333%; }
+	.col-sm-8   { width: 66.6667%; }
+	.col-sm-9   { width: 75%; }
+	.col-sm-10  { width: 83.3333%; }
+	.col-sm-11  { width: 91.6667%; }
+	.col-sm-12  { width: 100%; }
+	.col-sm-auto { width: auto; }
+}
+
+@media (min-width: 768px) {
+	.col-md-1   { width: 8.3333%; }
+	.col-md-2   { width: 16.6667%; }
+	.col-md-3   { width: 25%; }
+	.col-md-4   { width: 33.3333%; }
+	.col-md-5   { width: 41.6667%; }
+	.col-md-6   { width: 50%; }
+	.col-md-7   { width: 58.3333%; }
+	.col-md-8   { width: 66.6667%; }
+	.col-md-9   { width: 75%; }
+	.col-md-10  { width: 83.3333%; }
+	.col-md-11  { width: 91.6667%; }
+	.col-md-12  { width: 100%; }
+	.col-md-auto { width: auto; }
+}
+
+@media (min-width: 992px) {
+	.col-lg-1   { width: 8.3333%; }
+	.col-lg-2   { width: 16.6667%; }
+	.col-lg-3   { width: 25%; }
+	.col-lg-4   { width: 33.3333%; }
+	.col-lg-5   { width: 41.6667%; }
+	.col-lg-6   { width: 50%; }
+	.col-lg-7   { width: 58.3333%; }
+	.col-lg-8   { width: 66.6667%; }
+	.col-lg-9   { width: 75%; }
+	.col-lg-10  { width: 83.3333%; }
+	.col-lg-11  { width: 91.6667%; }
+	.col-lg-12  { width: 100%; }
+	.col-lg-auto { width: auto; }
+}
+
+@media (min-width: 1200px) {
+	.col-xl-1   { width: 8.3333%; }
+	.col-xl-2   { width: 16.6667%; }
+	.col-xl-3   { width: 25%; }
+	.col-xl-4   { width: 33.3333%; }
+	.col-xl-5   { width: 41.6667%; }
+	.col-xl-6   { width: 50%; }
+	.col-xl-7   { width: 58.3333%; }
+	.col-xl-8   { width: 66.6667%; }
+	.col-xl-9   { width: 75%; }
+	.col-xl-10  { width: 83.3333%; }
+	.col-xl-11  { width: 91.6667%; }
+	.col-xl-12  { width: 100%; }
+	.col-xl-auto { width: auto; }
+}
+
+/* === Accessibility utilities === */
+
+.screen-reader-text {
+	border: 0;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	height: 1px; width: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute !important;
+	word-wrap: normal !important;
+}
+
+.skip-link {
+	position: absolute;
+	inset-inline-start: -9999px;
+	top: var(--space-2);
+	background: var(--color-primary);
+	color: #fff;
+	padding: var(--space-2) var(--space-4);
+	border-radius: var(--radius-btn);
+	z-index: 9999;
+	font-weight: 600;
+}
+.skip-link:focus { inset-inline-start: var(--space-2); }
+
+/* === Misc === */
+
+.site-content { min-height: 60vh; }
+.site-main { padding-block: var(--space-6); }
+
+.section-header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	margin-bottom: var(--space-5);
+}
+.section-title { font-size: var(--fs-2xl); margin: 0; }
+.section-more { font-size: var(--fs-sm); color: var(--color-primary); }
