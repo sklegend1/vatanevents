@@ -1,3 +1,105 @@
-*.mp3
-mimo.exe
+# ============================================
+# Vatan Ticket — WordPress .gitignore
+# Auto-deploy via Git push to Hostinger
+# ============================================
+
+# --- WordPress Core (already on server, don't sync) ---
+wp-admin/
+wp-includes/
+wp-login.php
+wp-settings.php
+wp-signup.php
+wp-activate.php
+wp-comments-post.php
+wp-cron.php
+wp-load.php
+wp-mail.php
+wp-trackback.php
+xmlrpc.php
+readme.html
+license.txt
+
+# --- Configuration (server-specific, never commit) ---
 wp-config.php
+wp-config.php.bak
+wp-config.php.old
+wp-config.php~
+.htaccess
+.htpasswd
+
+# --- Uploads (large files, managed on server) ---
+wp-content/uploads/
+
+# --- Cache & Object Cache ---
+wp-content/object-cache.php
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+wp-content/cache/
+
+# --- Plugins (install on server, don't deploy) ---
+wp-content/plugins/
+
+# --- Upgrade temp folder ---
+wp-content/upgrade/
+
+# --- Logs ---
+*.log
+wp-content/debug.log
+
+# --- Node / Dependencies ---
+node_modules/
+package-lock.json
+yarn.lock
+.pnpm-lock.yaml
+
+# --- IDE / Editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# --- OS files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# --- Build artifacts ---
+dist/
+build/
+*.min.js
+*.min.css
+.map
+
+# --- Temporary / Backup ---
+*.bak
+*.old
+*.tmp
+*.temp
+~$*
+
+# --- SQL dumps ---
+*.sql
+
+# --- LocalWP ---
+-local-lightning.log
+*.local
+
+# --- Misc ---
+.env
+.env.*
+mimo.exe
+AGENTS.md
+CLAUDE.md
+chat-history-backup.jsonl
+event.png
+local-xdebuginfo.php
+main.png
+master_prompt.md
