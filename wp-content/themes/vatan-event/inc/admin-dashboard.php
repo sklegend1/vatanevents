@@ -217,12 +217,6 @@ function vatan_admin_nav_items(): array {
 			'url'   => vatan_admin_url( 'sales' ),
 			'cap'   => 'manage_woocommerce',
 		),
-		'payouts'   => array(
-			'label' => __( 'Payouts', 'vatan-event' ),
-			'icon'  => '💳',
-			'url'   => vatan_admin_url( 'payouts' ),
-			'cap'   => 'manage_options',
-		),
 		'scanner'   => array(
 			'label' => __( 'Door Scanner', 'vatan-event' ),
 			'icon'  => '🎫',

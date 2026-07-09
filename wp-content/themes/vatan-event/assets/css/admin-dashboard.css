@@ -489,8 +489,53 @@ a.vatan-admin__stat:hover {
 .vatan-admin__badge--draft   { background: rgba(160, 160, 184, .15); color: #CBD5E1; }
 .vatan-admin__badge--private { background: rgba(124, 58, 237, .18); color: #C4B5FD; }
 .vatan-admin__badge--future  { background: rgba(6, 182, 212, .18); color: #67E8F9; }
+.vatan-admin__badge--success { background: rgba(16, 185, 129, .15); color: #6EE7B7; }
+.vatan-admin__badge--warning { background: rgba(245, 158, 11, .18); color: #FCD34D; }
+.vatan-admin__badge--info    { background: rgba(59, 130, 246, .18); color: #93C5FD; }
+.vatan-admin__badge--danger  { background: rgba(239, 68, 68, .18); color: #FCA5A5; }
 
-/* ---- Tabs (status filter / sales period) -------------------------- */
+/* ---- Mini button styles for action buttons in tables ---------------- */
+.vatan-admin__btn-mini {
+	appearance: none;
+	background: var(--vatan-admin-panel-bg);
+	border: 1px solid var(--vatan-admin-border);
+	border-radius: 6px;
+	padding: 6px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--vatan-admin-text);
+	cursor: pointer;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	line-height: 1.2;
+	transition: background 140ms ease, border-color 140ms ease;
+}
+.vatan-admin__btn-mini:hover {
+	background: var(--vatan-admin-surface-2);
+	border-color: rgba(255,255,255,.18);
+	color: var(--vatan-admin-text);
+}
+.vatan-admin__btn-mini--success {
+	background: rgba(16, 185, 129, .12);
+	border-color: rgba(16, 185, 129, .3);
+	color: #6EE7B7;
+}
+.vatan-admin__btn-mini--success:hover {
+	background: rgba(16, 185, 129, .2);
+	border-color: rgba(16, 185, 129, .5);
+}
+.vatan-admin__btn-mini--danger {
+	color: #f87171;
+}
+.vatan-admin__btn-mini--danger:hover {
+	background: rgba(239, 68, 68, .14);
+	border-color: rgba(239, 68, 68, .35);
+	color: #fca5a5;
+}
+
+/* ---- Mini button styles for action buttons in tables ---------------- */
 
 .vatan-admin__tabs {
 	display: flex;

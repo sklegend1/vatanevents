@@ -36,12 +36,6 @@ $events = function_exists( 'vatan_record_payout' ) ? get_posts( array(
 	'posts_per_page' => -1,
 	'orderby'        => 'title',
 	'order'          => 'ASC',
-	'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-		array(
-			'key'     => '_vatan_submitted_by',
-			'compare' => 'EXISTS',
-		),
-	),
 ) ) : array();
 
 $payouts = function_exists( 'vatan_list_payouts' ) ? vatan_list_payouts( array( 'limit' => 50 ) ) : array();
