@@ -214,6 +214,7 @@ function vatan_music_admin_handle_track_save(): void {
 	$genre_ids   = isset( $_POST['music_genre'] ) && is_array( $_POST['music_genre'] ) ? array_map( 'absint', $_POST['music_genre'] ) : array();
 	$remove_audio = ! empty( $_POST['remove_audio'] );
 	$remove_cover = ! empty( $_POST['remove_cover'] );
+	$use_detected = ! empty( $_POST['use_detected'] );
 
 	if ( '' === $title ) {
 		// Bounce back to the form with an error flag.
@@ -237,7 +238,58 @@ function vatan_music_admin_handle_track_save(): void {
 	$cover_attachment_id = 0;
 
 	if ( ! empty( $_FILES['track_audio_file']['name'] ) && UPLOAD_ERR_OK === (int) $_FILES['track_audio_file']['error'] ) {
+		// Read ID3 BEFORE uploading — wp_handle_upload moves the tmp file.
+		$id3 = vatan_music_admin_read_id3( $_FILES['track_audio_file']['tmp_name'] );
+
 		$audio_attachment_id = vatan_music_admin_handle_upload( $_FILES['track_audio_file'], array( 'audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/aac', 'audio/x-m4a', 'audio/ogg', 'audio/wav' ) );
+
+		// Auto-fill fields from ID3 if not already set.
+		if ( $use_detected ) {
+			if ( empty( $title ) && ! empty( $id3['title'] ) ) {
+				$title = $id3['title'];
+			}
+			if ( ! $artist_id && ! empty( $id3['artist'] ) ) {
+				$existing = get_posts( array(
+					'post_type'      => 'artist',
+					'post_status'    => 'publish',
+					'title'          => $id3['artist'],
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+				) );
+				$artist_id = $existing ? (int) $existing[0] : 0;
+				if ( ! $artist_id && ! empty( $id3['artist'] ) ) {
+					$new_artist = wp_insert_post( array( 'post_type' => 'artist', 'post_status' => 'publish', 'post_title' => $id3['artist'] ) );
+					if ( ! is_wp_error( $new_artist ) ) {
+						$artist_id = (int) $new_artist;
+					}
+				}
+			}
+			if ( ! $album_id && ! empty( $id3['album'] ) ) {
+				$existing = get_posts( array(
+					'post_type'      => 'album',
+					'post_status'    => 'publish',
+					'title'          => $id3['album'],
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+				) );
+				$album_id = $existing ? (int) $existing[0] : 0;
+				if ( ! $album_id && ! empty( $id3['album'] ) ) {
+					$new_album = wp_insert_post( array( 'post_type' => 'album', 'post_status' => 'publish', 'post_title' => $id3['album'] ) );
+					if ( ! is_wp_error( $new_album ) ) {
+						$album_id = (int) $new_album;
+						if ( $artist_id ) {
+							update_post_meta( $album_id, 'album_artist', $artist_id );
+						}
+					}
+				}
+			}
+			if ( null === $track_no && ! empty( $id3['track_number'] ) ) {
+				$track_no = $id3['track_number'];
+			}
+			if ( null === $duration && ! empty( $id3['duration'] ) ) {
+				$duration = $id3['duration'];
+			}
+		}
 	}
 	if ( ! empty( $_FILES['cover_file']['name'] ) && UPLOAD_ERR_OK === (int) $_FILES['cover_file']['error'] ) {
 		error_log( 'VATAN TRACK SAVE: cover_file=' . $_FILES['cover_file']['name'] . ' type=' . $_FILES['cover_file']['type'] . ' size=' . $_FILES['cover_file']['size'] );
@@ -320,10 +372,12 @@ function vatan_music_admin_handle_track_save(): void {
 		delete_post_meta( $post_id, 'track_audio_file' );
 	}
 
-	// Cover (featured image).
+	// Cover (featured image) — manual upload first, then ID3 fallback.
 	if ( $cover_attachment_id ) {
 		$r = set_post_thumbnail( $post_id, $cover_attachment_id );
 		error_log( 'VATAN TRACK COVER: set_post_thumbnail(' . $post_id . ', ' . $cover_attachment_id . ') = ' . var_export( $r, true ) );
+	} elseif ( ! empty( $id3['album_art'] ) && file_exists( $id3['album_art'] ) ) {
+		vatan_music_admin_set_cover_from_file( $post_id, $id3['album_art'] );
 	} elseif ( $remove_cover ) {
 		delete_post_thumbnail( $post_id );
 	}

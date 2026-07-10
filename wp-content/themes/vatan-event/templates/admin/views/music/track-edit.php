@@ -144,6 +144,13 @@ if ( is_wp_error( $genres ) ) {
 					<?php endif; ?>
 					<input type="file" name="track_audio_file" accept="audio/mpeg,audio/mp3,audio/mp4,audio/aac,audio/x-m4a,audio/ogg,audio/wav,.mp3,.m4a,.aac,.ogg,.wav" class="vatan-music-form__file" />
 					<p class="vatan-music-form__help"><?php esc_html_e( 'MP3, M4A, AAC, OGG, or WAV. Will replace the current file if one exists.', 'vatan-event' ); ?></p>
+					<label class="vatan-music-form__check" style="margin-top:8px;">
+						<input type="checkbox" name="use_detected" value="1" checked />
+						<span>
+							<strong><?php esc_html_e( 'Auto-detect from ID3 tags', 'vatan-event' ); ?></strong>
+							<small><?php esc_html_e( 'Extract title, artist, album, cover art, and duration from the audio file.', 'vatan-event' ); ?></small>
+						</span>
+					</label>
 				</div>
 
 				<div data-vm-stream-url <?php echo $is_live ? '' : 'hidden'; ?>>

@@ -83,17 +83,13 @@ $featured_albums = get_posts( array(
 	),
 ) );
 
-// Add buttons still route to wp-admin during phase 1; phases 2-3 swap
-// these for in-dashboard create forms. "View list" buttons now use the
-// new in-dashboard sub-views so daily browsing skips wp-admin entirely.
 $url_add_track     = vatan_music_admin_new_track_url();
-$url_add_album     = admin_url( 'post-new.php?post_type=album' );
-$url_add_artist    = admin_url( 'post-new.php?post_type=artist' );
+$url_add_album     = vatan_music_admin_new_album_url();
+$url_add_artist    = vatan_music_admin_new_artist_url();
 $url_list_tracks   = vatan_music_admin_url( 'tracks' );
 $url_list_albums   = vatan_music_admin_url( 'albums' );
 $url_list_artists  = vatan_music_admin_url( 'artists' );
 $url_list_genres   = vatan_music_admin_url( 'genres' );
-$url_manage_genres = admin_url( 'edit-tags.php?taxonomy=music_genre&post_type=track' );
 $url_settings      = admin_url( 'admin.php?page=vatan-theme-settings&tab=music' );
 
 // `vatan_admin_music_cover()` lives in inc/music/admin.php so every
@@ -150,6 +146,9 @@ $url_settings      = admin_url( 'admin.php?page=vatan-theme-settings&tab=music' 
 		</a>
 		<a class="vatan-admin__btn" href="<?php echo esc_url( $url_list_genres ); ?>">
 			🎨 <?php esc_html_e( 'Manage genres', 'vatan-event' ); ?>
+		</a>
+		<a class="vatan-admin__btn" href="<?php echo esc_url( vatan_music_admin_url( 'batch' ) ); ?>">
+			📦 <?php esc_html_e( 'Batch upload', 'vatan-event' ); ?>
 		</a>
 		<a class="vatan-admin__btn" href="<?php echo esc_url( $url_settings ); ?>">
 			⚙️ <?php esc_html_e( 'Player settings', 'vatan-event' ); ?>

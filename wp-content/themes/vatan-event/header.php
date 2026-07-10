@@ -157,7 +157,9 @@ if ( $bn_logged_in ) {
 	$bn_tickets_url = function_exists( 'vatan_auth_login_url' )
 		? vatan_auth_login_url( home_url( '/' ) )
 		: wp_login_url();
-	$bn_account_url = $bn_tickets_url;
+	$bn_account_url = function_exists( 'vatan_auth_signup_url' )
+		? vatan_auth_signup_url( home_url( '/' ) )
+		: wp_registration_url();
 }
 
 // Highlight the active tab. Cheap-and-cheerful URL prefix match; works
