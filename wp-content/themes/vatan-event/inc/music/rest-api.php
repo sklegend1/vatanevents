@@ -349,6 +349,13 @@ function vatan_format_artist_for_rest( $post ): array {
 
 function vatan_rest_music_feed( WP_REST_Request $request ) {
 	$lang = (string) $request->get_param( 'lang' );
+	$cache_key = 'vatan_music_feed_' . ( $lang ?: 'all' );
+
+	// Check transient cache (60 seconds).
+	$cached = get_transient( $cache_key );
+	if ( false !== $cached ) {
+		return rest_ensure_response( $cached );
+	}
 
 	$base = array(
 		'post_status'    => 'publish',
@@ -419,13 +426,18 @@ function vatan_rest_music_feed( WP_REST_Request $request ) {
 		}
 	}
 
-	return rest_ensure_response( array(
+	$response_data = array(
 		'featured_albums'  => array_map( 'vatan_format_album_for_rest',  $featured_albums ),
 		'featured_artists' => array_map( 'vatan_format_artist_for_rest', $featured_artists ),
 		'recent_tracks'    => array_map( 'vatan_format_track_for_rest',  $recent_tracks ),
 		'recent_albums'    => array_map( 'vatan_format_album_for_rest',  $recent_albums ),
 		'genres'           => $genres_out,
-	) );
+	);
+
+	// Cache for 60 seconds.
+	set_transient( $cache_key, $response_data, 60 );
+
+	return rest_ensure_response( $response_data );
 }
 
 /**

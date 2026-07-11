@@ -45,6 +45,13 @@ function vatan_setup() {
 	add_theme_support( 'responsive-embeds' );
 	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );
 
+	// Custom image sizes for optimized delivery.
+	add_image_size( 'vatan-hero', 1920, 900, true );      // Hero slides — crop to 1920×900.
+	add_image_size( 'vatan-card', 600, 400, true );       // Event cards — crop to 600×400.
+	add_image_size( 'vatan-thumb', 300, 300, true );      // Thumbnails — crop to 300×300.
+	add_image_size( 'vatan-album', 400, 400, true );      // Music album art.
+	add_image_size( 'vatan-artist', 300, 300, true );     // Artist photos.
+
 	register_nav_menus( array(
 		'primary-fa' => __( 'Primary Menu — Persian (RTL)', 'vatan-event' ),
 		'primary-en' => __( 'Primary Menu — English (LTR)', 'vatan-event' ),
@@ -52,6 +59,19 @@ function vatan_setup() {
 	) );
 }
 add_action( 'after_setup_theme', 'vatan_setup' );
+
+/**
+ * Disable Heartbeat API on frontend pages.
+ * Heartbeat serves no purpose on the public site and wastes AJAX requests
+ * for logged-in users. Only needed in wp-admin.
+ */
+function vatan_disable_frontend_heartbeat( $settings ) {
+	if ( ! is_admin() ) {
+		$settings['interval'] = 0; // Disable entirely.
+	}
+	return $settings;
+}
+add_filter( 'heartbeat_settings', 'vatan_disable_frontend_heartbeat' );
 
 /**
  * Add theme-state body classes:

@@ -1071,3 +1071,190 @@ function vatan_render_social_links( $args = array() ) {
 	</ul>
 	<?php
 }
+
+/* =============================================================================
+ *  SEO helpers — meta tags, OG, Twitter Cards
+ * ===========================================================================*/
+
+/**
+ * Get the page title for SEO purposes.
+ *
+ * @return string
+ */
+function vatan_get_page_title(): string {
+	if ( is_singular( 'event' ) ) {
+		$event = get_post();
+		if ( $event ) {
+			return get_the_title( $event ) . ' — ' . get_bloginfo( 'name' );
+		}
+	}
+	if ( is_singular( 'post' ) ) {
+		return get_the_title() . ' — ' . get_bloginfo( 'name' );
+	}
+	if ( is_post_type_archive( 'event' ) ) {
+		return __( 'Events', 'vatan-event' ) . ' — ' . get_bloginfo( 'name' );
+	}
+	if ( is_home() ) {
+		return get_bloginfo( 'name' ) . ' — ' . get_bloginfo( 'description' );
+	}
+	return get_bloginfo( 'name' );
+}
+
+/**
+ * Get the meta description for SEO purposes.
+ *
+ * @return string
+ */
+function vatan_get_meta_description(): string {
+	if ( is_singular( 'event' ) ) {
+		$event = get_post();
+		if ( $event ) {
+			$excerpt = wp_trim_words( wp_strip_all_tags( $event->post_content ), 30, '…' );
+			if ( $excerpt ) {
+				return $excerpt;
+			}
+		}
+	}
+	if ( is_singular( 'post' ) ) {
+		return wp_trim_words( wp_strip_all_tags( get_the_excerpt() ), 30, '…' );
+	}
+	return get_bloginfo( 'description' );
+}
+
+/**
+ * Get the OG/Twitter image URL for SEO purposes.
+ *
+ * @return string
+ */
+function vatan_get_seo_image(): string {
+	if ( is_singular( 'event' ) ) {
+		$thumb = get_the_post_thumbnail_url( get_post(), 'large' );
+		if ( $thumb ) {
+			return $thumb;
+		}
+	}
+	if ( is_singular( 'post' ) ) {
+		$thumb = get_the_post_thumbnail_url( get_post(), 'large' );
+		if ( $thumb ) {
+			return $thumb;
+		}
+	}
+	// Fallback to site logo or default image.
+	$logo_id = (int) vatan_get_setting( 'logo_id' );
+	if ( $logo_id ) {
+		$url = wp_get_attachment_image_url( $logo_id, 'large' );
+		if ( $url ) {
+			return $url;
+		}
+	}
+	return '';
+}
+
+/**
+ * Emit SEO meta tags into <head>.
+ *
+ * Hooks into wp_head at priority 1.
+ */
+function vatan_emit_seo_meta(): void {
+	$title       = vatan_get_page_title();
+	$description = vatan_get_meta_description();
+	$image       = vatan_get_seo_image();
+	$url         = get_permalink();
+	$site_name   = get_bloginfo( 'name' );
+	?>
+	<meta name="description" content="<?php echo esc_attr( $description ); ?>" />
+	<meta property="og:title" content="<?php echo esc_attr( $title ); ?>" />
+	<meta property="og:description" content="<?php echo esc_attr( $description ); ?>" />
+	<meta property="og:url" content="<?php echo esc_url( $url ); ?>" />
+	<meta property="og:site_name" content="<?php echo esc_attr( $site_name ); ?>" />
+	<?php if ( $image ) : ?>
+		<meta property="og:image" content="<?php echo esc_url( $image ); ?>" />
+	<?php endif; ?>
+	<?php if ( is_singular( 'event' ) ) : ?>
+		<meta property="og:type" content="event" />
+	<?php elseif ( is_singular( 'post' ) ) : ?>
+		<meta property="og:type" content="article" />
+	<?php else : ?>
+		<meta property="og:type" content="website" />
+	<?php endif; ?>
+	<meta name="twitter:card" content="<?php echo $image ? 'summary_large_image' : 'summary'; ?>" />
+	<meta name="twitter:title" content="<?php echo esc_attr( $title ); ?>" />
+	<meta name="twitter:description" content="<?php echo esc_attr( $description ); ?>" />
+	<?php if ( $image ) : ?>
+		<meta name="twitter:image" content="<?php echo esc_url( $image ); ?>" />
+	<?php endif; ?>
+	<?php
+}
+add_action( 'wp_head', 'vatan_emit_seo_meta', 1 );
+
+/**
+ * Emit Schema.org JSON-LD structured data.
+ *
+ * Hooks into wp_head at priority 2 (after meta tags).
+ */
+function vatan_emit_schema_jsonld(): void {
+	$schema = array();
+
+	if ( is_singular( 'event' ) ) {
+		$event = get_post();
+		if ( $event ) {
+			$event_date = get_post_meta( $event->ID, 'event_date', true );
+			$end_date   = get_post_meta( $event->ID, 'event_end_date', true );
+			$venue      = get_post_meta( $event->ID, 'event_venue', true );
+			$organizer_id = (int) get_post_meta( $event->ID, '_vatan_submitted_by', true );
+
+			$schema['@context'] = 'https://schema.org';
+			$schema['@type'] = 'Event';
+			$schema['name'] = get_the_title( $event );
+			$schema['description'] = wp_trim_words( wp_strip_all_tags( $event->post_content ), 50, '…' );
+			$schema['url'] = get_permalink( $event );
+
+			if ( $event_date ) {
+				$schema['startDate'] = $event_date;
+			}
+			if ( $end_date ) {
+				$schema['endDate'] = $end_date;
+			}
+			if ( $venue ) {
+				$schema['location'] = array(
+					'@type' => 'Place',
+					'name' => $venue,
+				);
+			}
+			if ( $organizer_id ) {
+				$organizer = get_userdata( $organizer_id );
+				if ( $organizer ) {
+					$schema['organizer'] = array(
+						'@type' => 'Person',
+						'name' => $organizer->display_name,
+					);
+				}
+			}
+			$thumb = get_the_post_thumbnail_url( $event, 'large' );
+			if ( $thumb ) {
+				$schema['image'] = $thumb;
+			}
+		}
+	} elseif ( is_front_page() ) {
+		$schema['@context'] = 'https://schema.org';
+		$schema['@type'] = 'Organization';
+		$schema['name'] = get_bloginfo( 'name' );
+		$schema['url'] = home_url( '/' );
+		$logo_id = (int) vatan_get_setting( 'logo_id' );
+		if ( $logo_id ) {
+			$logo_url = wp_get_attachment_image_url( $logo_id, 'large' );
+			if ( $logo_url ) {
+				$schema['logo'] = $logo_url;
+			}
+		}
+	}
+
+	if ( ! empty( $schema ) ) {
+		?>
+		<script type="application/ld+json">
+		<?php echo wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ); ?>
+		</script>
+		<?php
+	}
+}
+add_action( 'wp_head', 'vatan_emit_schema_jsonld', 2 );
