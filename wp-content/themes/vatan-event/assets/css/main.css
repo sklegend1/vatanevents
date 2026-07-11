@@ -361,3 +361,15 @@ html[lang|="en"] {
 }
 .section-title { font-size: var(--fs-2xl); margin: 0; }
 .section-more { font-size: var(--fs-sm); color: var(--color-primary); }
+
+/* === Reduced motion === */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

@@ -114,16 +114,36 @@
 			margin:       [ 10, 10, 10, 10 ],
 			filename:     filename,
 			image:        { type: 'jpeg', quality: 0.95 },
-			html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+			html2canvas:  {
+				scale: 2,
+				useCORS: true,
+				allowTaint: true,
+				backgroundColor: '#ffffff',
+				fontFaces: [
+					{ family: 'Vazirmatn', weight: '100 900' },
+				],
+			},
 			jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
 		};
 
-		window.html2pdf().set( opts ).from( target ).save().then( function () {
-			target.classList.remove( 'is-capturing' );
-		} ).catch( function () {
-			target.classList.remove( 'is-capturing' );
-			window.print();
-		} );
+		// Wait for fonts to load before capturing
+		if ( document.fonts && document.fonts.ready ) {
+			document.fonts.ready.then( function () {
+				window.html2pdf().set( opts ).from( target ).save().then( function () {
+					target.classList.remove( 'is-capturing' );
+				} ).catch( function () {
+					target.classList.remove( 'is-capturing' );
+					window.print();
+				} );
+			} );
+		} else {
+			window.html2pdf().set( opts ).from( target ).save().then( function () {
+				target.classList.remove( 'is-capturing' );
+			} ).catch( function () {
+				target.classList.remove( 'is-capturing' );
+				window.print();
+			} );
+		}
 	}
 
 	function printTicket( target, itemId ) {

@@ -292,9 +292,7 @@ function vatan_music_admin_handle_track_save(): void {
 		}
 	}
 	if ( ! empty( $_FILES['cover_file']['name'] ) && UPLOAD_ERR_OK === (int) $_FILES['cover_file']['error'] ) {
-		error_log( 'VATAN TRACK SAVE: cover_file=' . $_FILES['cover_file']['name'] . ' type=' . $_FILES['cover_file']['type'] . ' size=' . $_FILES['cover_file']['size'] );
 		$cover_attachment_id = vatan_music_admin_handle_upload( $_FILES['cover_file'], array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' ) );
-		error_log( 'VATAN TRACK SAVE: cover_attachment_id=' . $cover_attachment_id );
 	}
 
 	// Auto-detect duration if we just uploaded an audio file and no manual value.
@@ -374,8 +372,7 @@ function vatan_music_admin_handle_track_save(): void {
 
 	// Cover (featured image) — manual upload first, then ID3 fallback.
 	if ( $cover_attachment_id ) {
-		$r = set_post_thumbnail( $post_id, $cover_attachment_id );
-		error_log( 'VATAN TRACK COVER: set_post_thumbnail(' . $post_id . ', ' . $cover_attachment_id . ') = ' . var_export( $r, true ) );
+		set_post_thumbnail( $post_id, $cover_attachment_id );
 	} elseif ( ! empty( $id3['album_art'] ) && file_exists( $id3['album_art'] ) ) {
 		vatan_music_admin_set_cover_from_file( $post_id, $id3['album_art'] );
 	} elseif ( $remove_cover ) {
@@ -501,9 +498,7 @@ function vatan_music_admin_handle_album_save(): void {
 
 	$cover_attachment_id = 0;
 	if ( ! empty( $_FILES['cover_file']['name'] ) && UPLOAD_ERR_OK === (int) $_FILES['cover_file']['error'] ) {
-		error_log( 'VATAN ALBUM SAVE: cover_file=' . $_FILES['cover_file']['name'] . ' type=' . $_FILES['cover_file']['type'] . ' size=' . $_FILES['cover_file']['size'] );
 		$cover_attachment_id = vatan_music_admin_handle_upload( $_FILES['cover_file'], array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' ) );
-		error_log( 'VATAN ALBUM SAVE: cover_attachment_id=' . $cover_attachment_id );
 	}
 
 	$post_data = array(
@@ -541,8 +536,7 @@ function vatan_music_admin_handle_album_save(): void {
 	update_post_meta( $post_id, '_album_is_featured', 'field_vatan_album_is_featured' );
 
 	if ( $cover_attachment_id ) {
-		$r = set_post_thumbnail( $post_id, $cover_attachment_id );
-		error_log( 'VATAN ALBUM COVER: set_post_thumbnail(' . $post_id . ', ' . $cover_attachment_id . ') = ' . var_export( $r, true ) );
+		set_post_thumbnail( $post_id, $cover_attachment_id );
 	} elseif ( $remove_cover ) {
 		delete_post_thumbnail( $post_id );
 	}
@@ -1078,12 +1072,7 @@ function vatan_music_admin_find_or_create_album( string $title, int $artist_id =
  * @param string $file_path Path to image file.
  */
 function vatan_music_admin_set_cover_from_file( int $post_id, string $file_path ): void {
-	if ( ! $post_id ) {
-		error_log( 'VATAN COVER: no post_id' );
-		return;
-	}
-	if ( ! file_exists( $file_path ) ) {
-		error_log( 'VATAN COVER: file not found: ' . $file_path );
+	if ( ! $post_id || ! file_exists( $file_path ) ) {
 		return;
 	}
 
@@ -1116,10 +1105,8 @@ function vatan_music_admin_set_cover_from_file( int $post_id, string $file_path 
 	// Use copy instead of move_uploaded_file — the source is an ID3-extracted
 	// temp file, not a PHP $_FILES upload.
 	if ( ! copy( $file_path, $new_file ) ) {
-		error_log( 'VATAN COVER: copy failed from ' . $file_path . ' to ' . $new_file );
 		return;
 	}
-	error_log( 'VATAN COVER: copied to ' . $new_file );
 
 	$attachment = array(
 		'post_mime_type' => $mime,
@@ -1132,9 +1119,6 @@ function vatan_music_admin_set_cover_from_file( int $post_id, string $file_path 
 		$attach_data = wp_generate_attachment_metadata( $attach_id, $new_file );
 		wp_update_attachment_metadata( $attach_id, $attach_data );
 		set_post_thumbnail( $post_id, $attach_id );
-		error_log( 'VATAN COVER: set cover on post #' . $post_id . ' with attachment #' . $attach_id );
-	} else {
-		error_log( 'VATAN COVER: wp_insert_attachment failed for post #' . $post_id . ' — ' . ( is_wp_error( $attach_id ) ? $attach_id->get_error_message() : 'false' ) );
 	}
 }
 
@@ -1161,7 +1145,6 @@ function vatan_music_admin_handle_upload( array $file_array, array $allowed ): i
 		$mime     = (string) ( $fallback['type'] ?? '' );
 	}
 	if ( ! $mime || ! in_array( $mime, $allowed, true ) ) {
-		error_log( 'VATAN UPLOAD: rejected ' . ( $file_array['name'] ?? '' ) . ' mime=' . $mime );
 		return 0;
 	}
 
@@ -1172,11 +1155,9 @@ function vatan_music_admin_handle_upload( array $file_array, array $allowed ): i
 	unset( $_FILES['vatan_upload'] );
 
 	if ( is_wp_error( $attach_id ) ) {
-		error_log( 'VATAN UPLOAD: media_handle_upload failed for ' . ( $file_array['name'] ?? '' ) . ' — ' . $attach_id->get_error_message() );
 		return 0;
 	}
 
-	error_log( 'VATAN UPLOAD: attachment #' . $attach_id . ' status=' . get_post_status( $attach_id ) );
 	return (int) $attach_id;
 }
 
@@ -1290,9 +1271,8 @@ function vatan_music_admin_handle_batch_upload(): void {
 
 	$nonce = isset( $_POST['_vatan_music_batch_nonce'] ) ? (string) wp_unslash( $_POST['_vatan_music_batch_nonce'] ) : '';
 	if ( ! wp_verify_nonce( $nonce, 'vatan_music_batch_upload' ) ) {
-		$debug = 'VATAN BATCH DEBUG: nonce failed. POST=' . wp_json_encode( array_keys( $_POST ) ) . ' FILES=' . wp_json_encode( isset( $_FILES['batch_audio_files'] ) ? 'present' : 'missing' );
-		error_log( $debug );
-		wp_die( $debug );
+		wp_safe_redirect( vatan_music_admin_url( 'batch', array( 'err' => 'nonce' ) ) );
+		exit;
 	}
 
 	if ( ! function_exists( 'wp_handle_upload' ) ) require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -1316,25 +1296,12 @@ function vatan_music_admin_handle_batch_upload(): void {
 		'tracks'  => array(),
 	);
 
-	// Debug: log what we received
-	$files_received = ! empty( $_FILES['batch_audio_files'] ) ? count( $_FILES['batch_audio_files']['name'] ) : 0;
-	error_log( 'VATAN BATCH: POST keys = ' . implode( ', ', array_keys( $_POST ) ) );
-	error_log( 'VATAN BATCH: FILES received = ' . $files_received );
-	if ( ! empty( $_FILES['batch_audio_files'] ) ) {
-		for ( $d = 0; $d < min( 3, count( $_FILES['batch_audio_files']['name'] ) ); $d++ ) {
-			error_log( 'VATAN BATCH: file[' . $d . '] name=' . ( $_FILES['batch_audio_files']['name'][ $d ] ?? '' ) . ' error=' . ( $_FILES['batch_audio_files']['error'][ $d ] ?? '' ) . ' size=' . ( $_FILES['batch_audio_files']['size'][ $d ] ?? '' ) );
-		}
-	}
-
 	if ( empty( $_FILES['batch_audio_files']['name'] ) || ! is_array( $_FILES['batch_audio_files']['name'] ) ) {
-		error_log( 'VATAN BATCH: no files in $_FILES, redirecting with error' );
 		wp_safe_redirect( vatan_music_admin_url( 'batch', array( 'err' => 'no_files' ) ) );
 		exit;
 	}
 
 	$file_count = count( $_FILES['batch_audio_files']['name'] );
-	$track_counter = 0;
-	error_log( 'VATAN BATCH: processing ' . $file_count . ' files' );
 
 	// Get existing track count for auto-numbering if album is set.
 	if ( $auto_number && $album_id ) {
@@ -1373,17 +1340,14 @@ function vatan_music_admin_handle_batch_upload(): void {
 
 		// Read ID3 BEFORE uploading — wp_handle_upload moves the tmp file.
 		$id3 = vatan_music_admin_read_id3( $tmp_name );
-		error_log( 'VATAN BATCH: id3 for ' . $file_name . ' = ' . wp_json_encode( $id3 ) );
 
 		$audio_attachment_id = vatan_music_admin_handle_upload( $file_array, array( 'audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/aac', 'audio/x-m4a', 'audio/ogg', 'audio/wav' ) );
 
 		if ( ! $audio_attachment_id ) {
-			error_log( 'VATAN BATCH: upload failed for ' . $file_name );
 			$results['failed']++;
 			$results['errors'][] = sprintf( __( 'Failed to upload "%s" — invalid file type.', 'vatan-event' ), $file_name );
 			continue;
 		}
-		error_log( 'VATAN BATCH: uploaded ' . $file_name . ' as attachment #' . $audio_attachment_id );
 
 		// Determine title: ID3 > filename.
 		$title = '';
@@ -1400,7 +1364,6 @@ function vatan_music_admin_handle_batch_upload(): void {
 
 		// Determine artist: ID3 > manual selection > auto-create.
 		$track_artist_id = $artist_id;
-		error_log( 'VATAN BATCH: artist_id=' . $track_artist_id . ' use_detected=' . ( $use_detected ? 'yes' : 'no' ) . ' id3_artist=' . ( $id3['artist'] ?? '' ) . ' create_artist=' . ( $create_artist ? 'yes' : 'no' ) );
 		if ( $use_detected && ! empty( $id3['artist'] ) && ! $track_artist_id ) {
 			// Try to find existing artist by name.
 			$existing_artists = get_posts( array(
@@ -1419,7 +1382,6 @@ function vatan_music_admin_handle_batch_upload(): void {
 
 		// Determine album: ID3 > manual selection > auto-create.
 		$track_album_id = $album_id;
-		error_log( 'VATAN BATCH: album_id=' . $track_album_id . ' id3_album=' . ( $id3['album'] ?? '' ) . ' create_album=' . ( $create_album ? 'yes' : 'no' ) );
 		if ( $use_detected && ! empty( $id3['album'] ) && ! $track_album_id ) {
 			// Try to find existing album by title.
 			$existing_albums = get_posts( array(
@@ -1473,12 +1435,10 @@ function vatan_music_admin_handle_batch_upload(): void {
 		if ( $track_artist_id ) {
 			update_post_meta( $post_id, 'track_artist', $track_artist_id );
 			update_post_meta( $post_id, '_track_artist', 'field_vatan_track_artist' );
-			error_log( 'VATAN BATCH: set artist_id=' . $track_artist_id . ' for track #' . $post_id );
 		}
 		if ( $track_album_id ) {
 			update_post_meta( $post_id, 'track_album', $track_album_id );
 			update_post_meta( $post_id, '_track_album', 'field_vatan_track_album' );
-			error_log( 'VATAN BATCH: set album_id=' . $track_album_id . ' for track #' . $post_id );
 		}
 		if ( null !== $track_number ) {
 			update_post_meta( $post_id, 'track_track_number', max( 1, $track_number ) );
@@ -1523,11 +1483,8 @@ function vatan_music_admin_handle_batch_upload(): void {
 	}
 
 	// Store results in session for display after redirect.
-	error_log( 'VATAN BATCH: completed — created=' . $results['created'] . ' failed=' . $results['failed'] );
 	if ( session_id() ) {
 		$_SESSION['vatan_batch_results'] = $results;
-	} else {
-		error_log( 'VATAN BATCH: no session, cannot store results' );
 	}
 
 	wp_safe_redirect( vatan_music_admin_url( 'batch', array( 'msg' => 'batch_done', 'n' => $results['created'] ) ) );

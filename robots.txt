@@ -1,0 +1,14 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+
+Disallow: /wp-json/
+Disallow: /wp-login.php
+Disallow: /wp-signup.php
+Disallow: /xmlrpc.php
+Disallow: /wp-cron.php
+Disallow: /*?replytocom
+Disallow: /search
+
+Sitemap: https://vatantiket.com/sitemap_index.xml

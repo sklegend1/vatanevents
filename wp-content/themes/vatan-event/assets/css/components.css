@@ -3112,12 +3112,15 @@ select.search-bar__input {
 	color: #000 !important;
 	border: 2px solid #000 !important;
 	box-shadow: none !important;
+	font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important;
+	direction: rtl !important;
+	unicode-bidi: embed !important;
 }
 .my-ticket.is-capturing::before { display: none !important; }
 .my-ticket.is-capturing .my-ticket__title,
 .my-ticket.is-capturing .my-ticket__meta dd,
-.my-ticket.is-capturing .my-ticket__qr-id { color: #000 !important; }
-.my-ticket.is-capturing .my-ticket__meta dt { color: #555 !important; }
+.my-ticket.is-capturing .my-ticket__qr-id { color: #000 !important; font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important; }
+.my-ticket.is-capturing .my-ticket__meta dt { color: #555 !important; font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important; }
 .my-ticket.is-capturing .my-ticket__status,
 .my-ticket.is-capturing .my-ticket__actions { display: none !important; }
 .my-ticket.is-capturing .my-ticket__qr { background: #fff !important; }
@@ -3144,11 +3147,13 @@ select.search-bar__input {
 		border: 2px solid #000 !important;
 		background: #fff !important;
 		color: #000 !important;
+		font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important;
+		direction: rtl !important;
 	}
 	.my-ticket *,
 	.my-ticket .my-ticket__title,
-	.my-ticket .my-ticket__meta dd { color: #000 !important; }
-	.my-ticket__meta dt { color: #444 !important; }
+	.my-ticket .my-ticket__meta dd { color: #000 !important; font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important; }
+	.my-ticket__meta dt { color: #444 !important; font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important; }
 	.my-ticket__qr { background: #fff !important; padding: 0 !important; }
 	.my-ticket::before { display: none; }
 }

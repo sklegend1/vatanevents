@@ -659,41 +659,59 @@ function vatan_get_country_terms( $limit = 12, $upcoming_only = true ) {
 		return array();
 	}
 
-	$today = current_time( 'Y-m-d' );
-	$out   = array();
+	// Single grouped query — count events per country (including children)
+	// instead of running a separate WP_Query per country term.
+	$country_ids = wp_list_pluck( $countries, 'term_id' );
+	$today       = current_time( 'Y-m-d' );
 
-	foreach ( $countries as $term ) {
-		$args = array(
-			'post_type'      => 'event',
-			'post_status'    => 'publish',
-			'fields'         => 'ids',
-			'posts_per_page' => 1,
-			'no_found_rows'  => false,
-			'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-				array(
-					'taxonomy'         => 'event_city',
-					'field'            => 'term_id',
-					'terms'            => array( (int) $term->term_id ),
-					'include_children' => true, // count this country's children too
-				),
+	$count_args = array(
+		'post_type'      => 'event',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+		'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			array(
+				'taxonomy'         => 'event_city',
+				'field'            => 'term_id',
+				'terms'            => $country_ids,
+				'include_children' => true,
+			),
+		),
+	);
+	if ( $upcoming_only ) {
+		$count_args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			array(
+				'key'     => 'event_date',
+				'value'   => $today,
+				'compare' => '>=',
+				'type'    => 'DATE',
 			),
 		);
-		if ( $upcoming_only ) {
-			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-				array(
-					'key'     => 'event_date',
-					'value'   => $today,
-					'compare' => '>=',
-					'type'    => 'DATE',
-				),
-			);
+	}
+
+	$q = new WP_Query( $count_args );
+
+	// Map each event ID to its country term(s) and count per country.
+	$counts = array_fill_keys( $country_ids, 0 );
+	foreach ( $q->posts as $post_id ) {
+		$terms = wp_get_post_terms( $post_id, 'event_city', array( 'fields' => 'ids' ) );
+		if ( is_wp_error( $terms ) ) {
+			continue;
 		}
-		$q     = new WP_Query( $args );
-		$count = (int) $q->found_posts;
+		foreach ( $terms as $tid ) {
+			if ( isset( $counts[ $tid ] ) ) {
+				$counts[ $tid ]++;
+			}
+		}
+	}
+
+	$out = array();
+	foreach ( $countries as $term ) {
+		$count = (int) ( $counts[ $term->term_id ] ?? 0 );
 		if ( $count < 1 ) {
 			continue;
 		}
-
 		$out[] = array(
 			'term'     => $term,
 			'count'    => $count,
@@ -724,49 +742,59 @@ function vatan_get_popular_cities( $limit = 8, $upcoming_only = true ) {
 		'hide_empty' => true,
 		'orderby'    => 'count',
 		'order'      => 'DESC',
-		'number'     => $upcoming_only ? 0 : $limit, // need all when filtering upcoming
+		'number'     => $upcoming_only ? 0 : $limit,
 	) );
 	if ( is_wp_error( $terms ) || empty( $terms ) ) {
 		return array();
 	}
 
-	$today = current_time( 'Y-m-d' );
+	$term_ids = wp_list_pluck( $terms, 'term_id' );
+	$counts   = array_fill_keys( $term_ids, 0 );
+
+	if ( $upcoming_only ) {
+		// Single grouped query to count upcoming events per city.
+		$today  = current_time( 'Y-m-d' );
+		$q      = new WP_Query( array(
+			'post_type'      => 'event',
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+				array(
+					'taxonomy' => 'event_city',
+					'field'    => 'term_id',
+					'terms'    => $term_ids,
+				),
+			),
+			'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				array(
+					'key'     => 'event_date',
+					'value'   => $today,
+					'compare' => '>=',
+					'type'    => 'DATE',
+				),
+			),
+		) );
+		foreach ( $q->posts as $post_id ) {
+			$post_terms = wp_get_post_terms( $post_id, 'event_city', array( 'fields' => 'ids' ) );
+			if ( is_wp_error( $post_terms ) ) {
+				continue;
+			}
+			foreach ( $post_terms as $tid ) {
+				if ( isset( $counts[ $tid ] ) ) {
+					$counts[ $tid ]++;
+				}
+			}
+		}
+	}
 
 	$out = array();
 	foreach ( $terms as $term ) {
-		if ( $upcoming_only ) {
-			$args = array(
-				'post_type'      => 'event',
-				'post_status'    => 'publish',
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'no_found_rows'  => false,
-				'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-					array(
-						'taxonomy' => 'event_city',
-						'field'    => 'term_id',
-						'terms'    => array( (int) $term->term_id ),
-					),
-				),
-				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					array(
-						'key'     => 'event_date',
-						'value'   => $today,
-						'compare' => '>=',
-						'type'    => 'DATE',
-					),
-				),
-			);
-			$q     = new WP_Query( $args );
-			$count = (int) $q->found_posts;
-		} else {
-			$count = (int) $term->count;
-		}
-
+		$count = $upcoming_only ? (int) ( $counts[ $term->term_id ] ?? 0 ) : (int) $term->count;
 		if ( $count < 1 ) {
 			continue;
 		}
-
 		$out[] = array(
 			'term'     => $term,
 			'count'    => $count,
@@ -777,7 +805,6 @@ function vatan_get_popular_cities( $limit = 8, $upcoming_only = true ) {
 		}
 	}
 
-	// Re-sort by computed count so the upcoming filter doesn't leave stale order.
 	usort( $out, function ( $a, $b ) { return $b['count'] - $a['count']; } );
 	return $out;
 }
