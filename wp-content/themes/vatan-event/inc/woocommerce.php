@@ -464,12 +464,12 @@ function vatan_get_reserved_seat_keys( $event_id ) {
 	}
 
 	// Orders — seats stored on each line item, including table seats.
+	// NOTE: _vatan_event_id is on LINE ITEMS, not the order itself, so we
+	// must query all orders and filter in PHP.
 	if ( function_exists( 'wc_get_orders' ) ) {
 		$orders = wc_get_orders( array(
 			'limit'      => -1,
 			'status'     => array( 'wc-completed', 'wc-processing', 'wc-on-hold', 'wc-pending' ),
-			'meta_key'   => '_vatan_event_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-			'meta_value' => $event_id,         // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		) );
 		if ( is_array( $orders ) ) {
 			foreach ( $orders as $order ) {

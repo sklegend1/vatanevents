@@ -170,8 +170,6 @@ function vatan_count_sold_per_type( $event_id ) {
 	$orders = wc_get_orders( array(
 		'limit'      => -1,
 		'status'     => array( 'wc-completed', 'wc-processing' ),
-		'meta_key'   => '_vatan_event_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-		'meta_value' => $event_id,         // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 	) );
 	if ( ! is_array( $orders ) ) {
 		return array();
@@ -220,8 +218,6 @@ function vatan_handle_export_buyers() {
 	if ( function_exists( 'wc_get_orders' ) ) {
 		$orders = wc_get_orders( array(
 			'limit'      => -1,
-			'meta_key'   => '_vatan_event_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-			'meta_value' => $event_id,         // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		) );
 		if ( is_array( $orders ) ) {
 			foreach ( $orders as $order ) {

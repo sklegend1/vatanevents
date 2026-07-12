@@ -57,8 +57,6 @@ function vatan_event_gross_revenue( $event_id ) {
 	$orders = wc_get_orders( array(
 		'limit'      => -1,
 		'status'     => vatan_earnings_counted_statuses(),
-		'meta_key'   => '_vatan_event_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-		'meta_value' => $event_id,         // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 	) );
 
 	$total = 0.0;
@@ -98,8 +96,6 @@ function vatan_event_tickets_sold( $event_id ) {
 	$orders = wc_get_orders( array(
 		'limit'      => -1,
 		'status'     => vatan_earnings_counted_statuses(),
-		'meta_key'   => '_vatan_event_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-		'meta_value' => $event_id,         // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 	) );
 
 	$total = 0;
