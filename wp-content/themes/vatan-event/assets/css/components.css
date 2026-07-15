@@ -3808,12 +3808,14 @@ body.vatan-drawer-open .drawer-backdrop {
 
 .site-main--auth {
 	padding-block: 0;
+	overflow-x: hidden;
 }
 
 .auth-shell {
 	display: grid;
 	grid-template-columns: 1fr;
 	min-height: calc(100vh - var(--header-height) - 80px);
+	overflow-x: hidden;
 }
 @media (min-width: 992px) {
 	.auth-shell { grid-template-columns: minmax(0, 1.1fr) minmax(420px, 1fr); }
@@ -3895,6 +3897,8 @@ body.vatan-drawer-open .drawer-backdrop {
 	flex-direction: column;
 	justify-content: center;
 	padding: var(--space-6) var(--space-5);
+	box-sizing: border-box;
+	overflow: hidden;
 }
 @media (min-width: 768px) {
 	.auth-card { padding: var(--space-7) var(--space-7); }
